@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Button, Table, Modal, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css'; // Ajouter des styles personnalisés ici
+import './App.css'; 
 
 function App() {
     const [showModal, setShowModal] = useState(false);
     const [tasks, setTasks] = useState([]);
+    const [filter, setFilter] = useState('all'); 
 
     const handleShowModal = () => setShowModal(true);
     const handleCloseModal = () => setShowModal(false);
@@ -19,11 +20,24 @@ function App() {
             date: event.target.date.value,
             time: event.target.time.value,
             priority: event.target.priority.value,
-            fulfillment: event.target.fulfillment.value
+            fulfillment: event.target.fulfillment.value,
+            status: 'todo' // Ajouter un statut initial 'À faire'
         };
         setTasks([...tasks, newTask]);
         handleCloseModal();
     };
+
+    const changeStatus = (index, status) => {
+        const updatedTasks = tasks.map((task, i) =>
+            i === index ? { ...task, status: status } : task
+        );
+        setTasks(updatedTasks);
+    };
+
+    const filteredTasks = tasks.filter(task => {
+        if (filter === 'all') return true;
+        return task.status === filter;
+    });
 
     return (
         <Container>
@@ -31,9 +45,9 @@ function App() {
             <Row className="mb-4">
                 <Col>
                     <Button onClick={handleShowModal}>Ajouter une nouvelle tâche</Button>
-                    <Button className="ml-2">Toutes</Button>
-                    <Button className="ml-2">À faire</Button>
-                    <Button className="ml-2">Terminées</Button>
+                    <Button className="ml-2" onClick={() => setFilter('all')}>Toutes</Button>
+                    <Button className="ml-2" onClick={() => setFilter('todo')}>À faire</Button>
+                    <Button className="ml-2" onClick={() => setFilter('done')}>Terminées</Button>
                 </Col>
             </Row>
             <Row>
@@ -47,10 +61,12 @@ function App() {
                                 <th>Quand</th>
                                 <th>Priorité</th>
                                 <th>Achèvement</th>
+                                <th>Statut</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {tasks.map((task, index) => (
+                            {filteredTasks.map((task, index) => (
                                 <tr key={index}>
                                     <td>{task.name}</td>
                                     <td>{task.description}</td>
@@ -58,6 +74,14 @@ function App() {
                                     <td>{task.date} {task.time}</td>
                                     <td>{task.priority}</td>
                                     <td>{task.fulfillment}%</td>
+                                    <td>{task.status === 'todo' ? 'À faire' : 'Terminée'}</td>
+                                    <td>
+                                        {task.status === 'todo' ? (
+                                            <Button onClick={() => changeStatus(index, 'done')}>Marquer comme terminée</Button>
+                                        ) : (
+                                            <Button onClick={() => changeStatus(index, 'todo')}>Marquer comme à faire</Button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
